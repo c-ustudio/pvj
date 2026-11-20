@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- PUBLIC tier overlay (the Play build). Merged over src/main only for the
+     `public` Gradle flavor.
+
+     media3-exoplayer's own manifest asks for ACCESS_NETWORK_STATE. The public
+     build has no INTERNET permission and plays local files only, so the
+     permission is dropped here; media3 catches the SecurityException and
+     reports the network type as unknown. The pro tier keeps it. -->
+<manifest xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools">
+    <uses-permission
+        android:name="android.permission.ACCESS_NETWORK_STATE"
+        tools:node="remove" />
+</manifest>

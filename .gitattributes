@@ -1,0 +1,5 @@
+# Every text file is LF in every checkout, Windows included. A Windows clone
+# (core.autocrlf=true) otherwise gets CRLF: the shell scripts stop running under
+# WSL (`bash\r`), `git apply` refuses the CRLF patch, and the exported APK
+# differs (shaders, scenes and multi-line strings carry the \r).
+* text=auto eol=lf

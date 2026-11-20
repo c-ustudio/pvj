@@ -1,0 +1,77 @@
+; Engine configuration file.
+; It's best edited using the editor UI and not directly,
+; since the parameters that go here are not all obvious.
+;
+; Format:
+;   [section] ; section goes between []
+;   param=value ; assign values to parameters
+
+config_version=5
+
+[application]
+
+config/name="PVJ"
+config/version="0.8.0-beta3"
+run/main_scene="res://scenes/Main.tscn"
+config/features=PackedStringArray("4.6", "GL Compatibility")
+config/icon="res://icon.svg"
+boot_splash/image="res://branding/pvj-splash-1080.png"
+boot_splash/bg_color=Color(0, 0, 0, 1)
+boot_splash/fullsize=true
+boot_splash/use_filter=false
+; ⚠️ ANDROID BACK MUST NOT QUIT (S24 §3). SceneTree.quit_on_go_back defaults to TRUE
+; and quits AFTER propagating NOTIFICATION_WM_GO_BACK_REQUEST to the tree — so a
+; handler alone cannot save the app, the quit lands anyway. Turning it off here (not
+; in _ready) means it holds from boot: an early script error can never silently put
+; the instant-quit back. What BACK means instead lives in pipeline.gd's
+; _on_back_requested().
+config/quit_on_go_back=false
+
+[audio]
+
+driver/enable_input=true
+
+[autoload]
+
+; FIRST: every other script may ask it what this build contains.
+Features="*res://core/features.gd"
+; SECOND: the clips folder (SAF tree or app storage) every engine scans.
+Storage="*res://core/storage.gd"
+GlobalBus="*res://scripts/audio_bus.gd"
+BeatClock="*res://scripts/beat_clock.gd"
+; Tempo detection for the BPM dialog's DETECT button. Listed after GlobalBus so it
+; exists when the estimator subscribes. PROPOSES only — never calls set_bpm().
+TempoDetect="*res://scripts/tempo_estimator.gd"
+; (The BpmSpike autoload was removed for the public beta: tools/ is excluded
+; from every .pck, and the spike said DELETE BEFORE SHIPPING. The file stays.)
+ClipLibrary="*res://scripts/clip_library.gd"
+ThumbnailService="*res://scripts/thumbnail_service.gd"
+; ClipServer, DriveAuth and DriveClient are PRO only: core/features.gd creates them
+; at boot, so the public .pck can leave their files (and the OAuth secret) out.
+
+[display]
+
+window/stretch/mode="canvas_items"
+window/stretch/aspect="expand"
+window/handheld/orientation="landscape"
+
+[input_devices]
+
+pointing/emulate_mouse_from_touch=true
+sensors/enable_gravity=true
+
+[physics]
+
+3d/physics_engine="Jolt Physics"
+
+[rendering]
+
+environment/defaults/default_clear_color=Color(0, 0, 0, 1)
+rendering_device/driver.windows="d3d12"
+renderer/rendering_method="gl_compatibility"
+renderer/rendering_method.mobile="gl_compatibility"
+textures/vram_compression/import_etc2_astc=true
+
+[editor_plugins]
+
+enabled=PackedStringArray("res://addons/vjmix_edition/plugin.cfg")

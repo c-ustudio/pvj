@@ -1,0 +1,52 @@
+.godot/
+/build/
+# android/build is Godot's generated Gradle template — ignored wholesale,
+# EXCEPT the hand-edited sources (plugin Kotlin, manifest, Media3 deps).
+# gitignore can't re-include below an excluded dir, hence the /* ladders.
+/android/build/*
+!/android/build/build.gradle
+!/android/build/src/
+/android/build/src/*
+!/android/build/src/main/
+# the PRO tier source set (Gradle flavor `pro`: classes + manifest overlay)
+!/android/build/src/pro/
+!/android/build/src/public/
+/android/build/src/main/*
+!/android/build/src/main/java/
+!/android/build/src/main/AndroidManifest.xml
+/android/.gradle/
+gradle-*.zip.lck
+*.apk
+*.aab
+# secrets — never commit
+secrets/drive_oauth.cfg
+client_secret*.json
+*credentials*.json
+*.keystore
+*.jks
+*.p12
+*.pfx
+key.properties
+local.properties
+.env
+*.env
+tools/local.env
+# GoZen binaries are tracked on purpose: they pin the working (16 KB page)
+# build. Their source and patch: tools/GOZEN_ANDROID_BUILD.md.
+*.TMP
+*~RF*.TMP
+# export_presets.cfg IS tracked since the public/pro split: Godot 4.6 keeps
+# keystore credentials in .godot/export_credentials.cfg, not in the presets.
+addons/gde_gozen/bin/libgozen.macos.*
+addons/gde_gozen/bin/libgozen.linux.*
+addons/gde_gozen/bin/libgozen.android.*.arm32.so
+
+# Godot regenerates the launcher activity into the Android build template.
+/android/build/src/main/java/com/godot/
+
+# D1 verifier byte-cache
+td/__pycache__/
+
+# release artifacts (tools/release_build.sh) and the ident renders
+/dist/
+__pycache__/

@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- PRO tier overlay (VJMIX Mobile Pro, sideloaded). Merged over
+     src/main/AndroidManifest.xml only for the `pro` Gradle flavor, so the
+     public AAB never registers these plugins (their classes are not in it
+     either — they live in src/pro/java). Permissions are NOT declared here:
+     Godot writes them per build type from the export preset. -->
+<manifest xmlns:android="http://schemas.android.com/apk/res/android">
+    <!-- Cleartext is for the LAN clip server and the link; the public build
+         has no INTERNET permission at all, so the flag lives here. -->
+    <application android:usesCleartextTraffic="true">
+        <!-- PocketVJ video-link Stage 1 receiver: TCP -> MediaCodec H.264 ->
+             ExternalTexture (VIDEO_LINK_SPEC.md §5 Stage 1). The name suffix
+             after "v2." must equal getPluginName() — the registry keys on it. -->
+        <meta-data
+            android:name="org.godotengine.plugin.v2.PocketVJVideoLink"
+            android:value="com.pocketvj.VideoLinkPlugin" />
+
+        <!-- PocketVJ tracking module: CameraX -> MediaPipe
+             (docs/MEDIAPIPE_MODULE.md). CAMERA comes from the export preset,
+             the same grant CameraEngine uses. -->
+        <meta-data
+            android:name="org.godotengine.plugin.v2.PocketVJTracking"
+            android:value="com.pocketvj.TrackingPlugin" />
+    </application>
+</manifest>

@@ -1,0 +1,26 @@
+diff --git a/SConstruct b/SConstruct
+index 5e7fcdf..bf52a54 100644
+--- a/SConstruct
++++ b/SConstruct
+@@ -89,7 +89,7 @@ elif "android" in platform:
+         env.Append(CCFLAGS=["-march=armv7-a", "-mfloat-abi=softfp", "-mfpu=neon"])
+ 
+     env.Append(
+-        LINKFLAGS=["-static-libstdc++"],
++        LINKFLAGS=["-static-libstdc++", "-Wl,-Bsymbolic"],
+         CPPFLAGS=["-Iffmpeg/bin", "-Iffmpeg/bin/include"],
+         LIBPATH=["ffmpeg/bin/lib", "ffmpeg/bin/lib64"],
+         LIBS=LIBS_COMMON,
+diff --git a/build.py b/build.py
+index eac80d7..2a233e1 100755
+--- a/build.py
++++ b/build.py
+@@ -651,7 +651,7 @@ def compile_ffmpeg_android(arch: str) -> None:
+         "--pkg-config-flags=--static",
+         "--disable-shared",
+         "--enable-static",
+-        "--disable-asm",
++        # "--disable-asm",  # PVJ experiment 2026-10-01: NEON on for arm64
+         "--enable-pic",
+         f"--arch={ffmpeg_arch}",
+         "--target-os=android",

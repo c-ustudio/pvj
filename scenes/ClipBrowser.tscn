@@ -1,0 +1,71 @@
+[gd_scene load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/clip_browser_ui.gd" id="1"]
+
+[node name="ClipBrowser" type="Control"]
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+script = ExtResource("1")
+
+[node name="Dim" type="ColorRect" parent="."]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+color = Color(0, 0, 0, 1)
+
+[node name="VBox" type="VBoxContainer" parent="."]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_left = 24.0
+offset_top = 24.0
+offset_right = -24.0
+offset_bottom = -24.0
+
+[node name="Toolbar" type="HBoxContainer" parent="VBox"]
+layout_mode = 2
+
+[node name="Label" type="Label" parent="VBox/Toolbar"]
+layout_mode = 2
+text = "  CLIPS  "
+
+[node name="RefreshBtn" type="Button" parent="VBox/Toolbar"]
+layout_mode = 2
+text = "REFRESH"
+
+[node name="StorageLabel" type="Label" parent="VBox/Toolbar"]
+layout_mode = 2
+size_flags_horizontal = 3
+text = ""
+
+[node name="CloseBtn" type="Button" parent="VBox/Toolbar"]
+layout_mode = 2
+text = "CLOSE X"
+
+[node name="Scroll" type="ScrollContainer" parent="VBox"]
+layout_mode = 2
+size_flags_vertical = 3
+
+[node name="ClipList" type="VBoxContainer" parent="VBox/Scroll"]
+layout_mode = 2
+size_flags_horizontal = 3
+
+[node name="Bottom" type="HBoxContainer" parent="VBox"]
+layout_mode = 2
+
+[node name="StatusLabel" type="Label" parent="VBox/Bottom"]
+layout_mode = 2
+size_flags_horizontal = 3
+text = ""
+
+[node name="LoadBtn" type="Button" parent="VBox/Bottom"]
+layout_mode = 2
+text = "LOAD"
+
+[node name="DeleteBtn" type="Button" parent="VBox/Bottom"]
+layout_mode = 2
+text = "DELETE"

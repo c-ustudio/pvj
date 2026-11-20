@@ -1,0 +1,35 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="128" height="128" viewBox="0 0 128 128">
+  <rect width="128" height="128" rx="28" fill="#000000"/>
+  <!-- PVJ: a keystoned projection frame, the play triangle, the name in pixels (branding/make_icons.py) -->
+  <polygon points="17.2,23.4 112.9,14.1 102.5,74.4 31.8,77.5" fill="none" stroke="#33ff66" stroke-width="6" stroke-linejoin="round"/>
+  <polygon points="50.5,32.8 83.8,48.4 50.5,64.0" fill="#33ff66"/>
+    <rect x="12.00" y="82.59" width="6.70" height="6.70" fill="#33ff66"/>
+  <rect x="18.50" y="82.59" width="6.70" height="6.70" fill="#33ff66"/>
+  <rect x="25.00" y="82.59" width="6.70" height="6.70" fill="#33ff66"/>
+  <rect x="12.00" y="89.09" width="6.70" height="6.70" fill="#33ff66"/>
+  <rect x="31.50" y="89.09" width="6.70" height="6.70" fill="#33ff66"/>
+  <rect x="12.00" y="95.59" width="6.70" height="6.70" fill="#33ff66"/>
+  <rect x="18.50" y="95.59" width="6.70" height="6.70" fill="#33ff66"/>
+  <rect x="25.00" y="95.59" width="6.70" height="6.70" fill="#33ff66"/>
+  <rect x="12.00" y="102.09" width="6.70" height="6.70" fill="#33ff66"/>
+  <rect x="12.00" y="108.59" width="6.70" height="6.70" fill="#33ff66"/>
+  <rect x="44.50" y="82.59" width="6.70" height="6.70" fill="#33ff66"/>
+  <rect x="70.50" y="82.59" width="6.70" height="6.70" fill="#33ff66"/>
+  <rect x="44.50" y="89.09" width="6.70" height="6.70" fill="#33ff66"/>
+  <rect x="70.50" y="89.09" width="6.70" height="6.70" fill="#33ff66"/>
+  <rect x="44.50" y="95.59" width="6.70" height="6.70" fill="#33ff66"/>
+  <rect x="70.50" y="95.59" width="6.70" height="6.70" fill="#33ff66"/>
+  <rect x="51.00" y="102.09" width="6.70" height="6.70" fill="#33ff66"/>
+  <rect x="64.00" y="102.09" width="6.70" height="6.70" fill="#33ff66"/>
+  <rect x="57.50" y="108.59" width="6.70" height="6.70" fill="#33ff66"/>
+  <rect x="96.50" y="82.59" width="6.70" height="6.70" fill="#33ff66"/>
+  <rect x="103.00" y="82.59" width="6.70" height="6.70" fill="#33ff66"/>
+  <rect x="109.50" y="82.59" width="6.70" height="6.70" fill="#33ff66"/>
+  <rect x="109.50" y="89.09" width="6.70" height="6.70" fill="#33ff66"/>
+  <rect x="109.50" y="95.59" width="6.70" height="6.70" fill="#33ff66"/>
+  <rect x="83.50" y="102.09" width="6.70" height="6.70" fill="#33ff66"/>
+  <rect x="109.50" y="102.09" width="6.70" height="6.70" fill="#33ff66"/>
+  <rect x="90.00" y="108.59" width="6.70" height="6.70" fill="#33ff66"/>
+  <rect x="96.50" y="108.59" width="6.70" height="6.70" fill="#33ff66"/>
+  <rect x="103.00" y="108.59" width="6.70" height="6.70" fill="#33ff66"/>
+</svg>

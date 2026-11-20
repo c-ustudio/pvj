@@ -1,0 +1,463 @@
+// Gradle build config for Godot Engine's Android port.
+plugins {
+    id 'com.android.application'
+    id 'org.jetbrains.kotlin.android'
+}
+
+apply from: 'config.gradle'
+
+// ── VJMIX tier: public (Play) or pro (sideloaded) ────────────────────────────
+// Godot cannot pass an export preset's custom features to Gradle, so the
+// addons/vjmix_edition export plugin writes vjmix_tier.properties at the start
+// of every Android export ("pro" feature → tier=pro, otherwise tier=public).
+// -Pvjmix_tier=public|pro overrides it for command-line builds. No default:
+// a build that cannot tell which tier it is must not guess.
+def vjmixTier = {
+    if (project.hasProperty('vjmix_tier')) {
+        return project.property('vjmix_tier').toString()
+    }
+    File f = file('vjmix_tier.properties')
+    if (f.isFile()) {
+        Properties p = new Properties()
+        f.withInputStream { p.load(it) }
+        return p.getProperty('tier', '')
+    }
+    return ''
+}()
+if (!(vjmixTier in ['public', 'pro'])) {
+    throw new GradleException("VJMIX tier unknown ('${vjmixTier}'). Export through Godot with the " +
+        "addons/vjmix_edition plugin enabled, or pass -Pvjmix_tier=public|pro.")
+}
+String vjmixTierCap = vjmixTier.capitalize()
+logger.lifecycle("VJMIX tier: ${vjmixTier}")
+
+allprojects {
+    repositories {
+        google()
+        mavenCentral()
+        gradlePluginPortal()
+        maven { url "https://plugins.gradle.org/m2/" }
+        maven { url "https://central.sonatype.com/repository/maven-snapshots/"}
+
+        // Godot user plugins custom maven repos
+        String[] mavenRepos = getGodotPluginsMavenRepos()
+        if (mavenRepos != null && mavenRepos.size() > 0) {
+            for (String repoUrl : mavenRepos) {
+                maven {
+                    url repoUrl
+                }
+            }
+        }
+    }
+}
+
+configurations {
+    // Initializes a placeholder for the devImplementation dependency configuration.
+    devImplementation {}
+    // Initializes a placeholder for the monoImplementation dependency configuration.
+    monoImplementation {}
+    // PRO tier only (see productFlavors). Declared up front for the same reason
+    // as the two above: the dependencies block is evaluated before the flavor.
+    proImplementation {}
+}
+
+dependencies {
+    // Android instrumented test dependencies
+    androidTestImplementation "androidx.test.ext:junit:$versions.junitVersion"
+    androidTestImplementation "androidx.test.espresso:espresso-core:$versions.espressoCoreVersion"
+    androidTestImplementation "org.jetbrains.kotlin:kotlin-test:$versions.kotlinTestVersion"
+    androidTestImplementation "androidx.test:runner:$versions.testRunnerVersion"
+    androidTestUtil "androidx.test:orchestrator:$versions.testOrchestratorVersion"
+
+    implementation "androidx.fragment:fragment:$versions.fragmentVersion"
+    implementation "androidx.core:core-splashscreen:$versions.splashscreenVersion"
+    implementation "androidx.documentfile:documentfile:$versions.documentfileVersion"
+
+    // PocketVJ dual-screen: ExoPlayer (Media3) for HDMI Presentation playback (Session 3b)
+    implementation "androidx.media3:media3-exoplayer:1.4.1"
+    implementation "androidx.media3:media3-ui:1.4.1"
+
+    // ── PRO tier only: the public AAB links none of these ──
+    // PocketVJ video link M3: SRT transport for the TouchDesigner leg
+    // (VideoLinkPlugin's srt sender — MPEG-TS over an SRT caller, Session 30)
+    proImplementation "io.github.thibaultbee.srtdroid:srtdroid-core:1.9.5"
+
+    // PocketVJ tracking module M0 spike: CameraX + MediaPipe Tasks vision
+    // (docs/MEDIAPIPE_MODULE.md §2.2). lifecycle-process supplies the
+    // ProcessLifecycleOwner CameraX binds to — Godot's activity is not a
+    // LifecycleOwner.
+    proImplementation "androidx.camera:camera-core:1.3.4"
+    proImplementation "androidx.camera:camera-camera2:1.3.4"
+    proImplementation "androidx.camera:camera-lifecycle:1.3.4"
+    proImplementation "androidx.lifecycle:lifecycle-process:2.8.7"
+    proImplementation "com.google.mediapipe:tasks-vision:0.10.14"
+
+    if (rootProject.findProject(":lib")) {
+        implementation project(":lib")
+    } else if (rootProject.findProject(":godot:lib")) {
+        implementation project(":godot:lib")
+    } else {
+        // Godot gradle build mode. In this scenario this project is the only one around and the Godot
+        // library is available through the pre-generated godot-lib.*.aar android archive files.
+        debugImplementation fileTree(dir: 'libs/debug', include: ['**/*.jar', '*.aar'])
+        devImplementation fileTree(dir: 'libs/dev', include: ['**/*.jar', '*.aar'])
+        releaseImplementation fileTree(dir: 'libs/release', include: ['**/*.jar', '*.aar'])
+    }
+
+    // Godot user plugins remote dependencies
+    String[] remoteDeps = getGodotPluginsRemoteBinaries()
+    if (remoteDeps != null && remoteDeps.size() > 0) {
+        for (String dep : remoteDeps) {
+            implementation dep
+        }
+    }
+
+    // Godot user plugins local dependencies
+    String[] pluginsBinaries = getGodotPluginsLocalBinaries()
+    if (pluginsBinaries != null && pluginsBinaries.size() > 0) {
+        implementation files(pluginsBinaries)
+    }
+
+    // Automatically pick up local dependencies in res://addons
+    String addonsDirectory = getAddonsDirectory()
+    if (addonsDirectory != null && !addonsDirectory.isBlank()) {
+        implementation fileTree(dir: "$addonsDirectory", include: ['*.jar', '*.aar'])
+    }
+
+    // .NET dependencies
+    String jar = '../../../../modules/mono/thirdparty/libSystem.Security.Cryptography.Native.Android.jar'
+    if (file(jar).exists()) {
+        monoImplementation files(jar)
+    }
+}
+
+configurations.all {
+    resolutionStrategy {
+        // srtdroid-core 1.9.5 pins androidx.core:core-ktx 1.17.0 (runtime
+        // scope, a convenience dep), which demands AGP >= 8.9.1; this Godot
+        // template runs AGP 8.6.1. Pin core to the newest 8.6-compatible
+        // line instead of upgrading the whole template's AGP for it.
+        force "androidx.core:core:1.13.1", "androidx.core:core-ktx:1.13.1"
+    }
+}
+
+android {
+    compileSdkVersion versions.compileSdk
+    buildToolsVersion versions.buildTools
+    ndkVersion versions.ndkVersion
+
+    compileOptions {
+        sourceCompatibility versions.javaVersion
+        targetCompatibility versions.javaVersion
+    }
+
+    kotlinOptions {
+        jvmTarget = versions.javaVersion
+    }
+
+    assetPacks = [":assetPackInstallTime"]
+
+    // The .aab for Play: one split per ABI / screen density / language, so a
+    // phone downloads only its own (arm64 here) — beta2 §3. These are AGP's
+    // defaults; written out so the sizes bundletool reports are deliberate.
+    bundle {
+        abi { enableSplit = true }
+        density { enableSplit = true }
+        language { enableSplit = true }
+    }
+
+    namespace = 'com.godot.game'
+
+    defaultConfig {
+        // The default ignore pattern for the 'assets' directory includes hidden files and directories which are used by Godot projects.
+        aaptOptions {
+            ignoreAssetsPattern "!.svn:!.git:!.gitignore:!.ds_store:!*.scc:!CVS:!thumbs.db:!picasa.ini:!*~"
+        }
+
+        ndk {
+            debugSymbolLevel 'NONE'
+            String[] export_abi_list = getExportEnabledABIs()
+            abiFilters export_abi_list
+        }
+
+        // Feel free to modify the application id to your own.
+        applicationId getExportPackageName()
+        versionCode getExportVersionCode()
+        versionName getExportVersionName()
+        minSdkVersion getExportMinSdkVersion()
+        targetSdkVersion getExportTargetSdkVersion()
+
+        missingDimensionStrategy 'products', 'template'
+
+        testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
+
+        // The following argument makes the Android Test Orchestrator run its
+        // "pm clear" command after each test invocation. This command ensures
+        // that the app's state is completely cleared between tests.
+        testInstrumentationRunnerArguments clearPackageData: 'true'
+    }
+
+    testOptions {
+        execution 'ANDROIDX_TEST_ORCHESTRATOR'
+    }
+
+    lintOptions {
+        abortOnError false
+        disable 'MissingTranslation', 'UnusedResources'
+    }
+
+    ndkVersion versions.ndkVersion
+
+    packagingOptions {
+        exclude 'META-INF/LICENSE'
+        exclude 'META-INF/NOTICE'
+
+        // Debug symbols are kept for development within Android Studio.
+        if (shouldNotStrip()) {
+            jniLibs {
+                keepDebugSymbols += '**/*.so'
+            }
+        }
+
+        jniLibs {
+            // Setting this to true causes AGP to package compressed native libraries when building the app
+            // For more background, see:
+            // - https://developer.android.com/build/releases/past-releases/agp-3-6-0-release-notes#extractNativeLibs
+            // - https://stackoverflow.com/a/44704840
+            useLegacyPackaging shouldUseLegacyPackaging()
+        }
+
+        // Always select Godot's version of libc++_shared.so in case deps have their own
+        pickFirst 'lib/x86/libc++_shared.so'
+        pickFirst 'lib/x86_64/libc++_shared.so'
+        pickFirst 'lib/armeabi-v7a/libc++_shared.so'
+        pickFirst 'lib/arm64-v8a/libc++_shared.so'
+    }
+
+    signingConfigs {
+        debug {
+            if (hasCustomDebugKeystore()) {
+                storeFile new File(getDebugKeystoreFile())
+                storePassword getDebugKeystorePassword()
+                keyAlias getDebugKeyAlias()
+                keyPassword getDebugKeystorePassword()
+            }
+        }
+
+        release {
+            File keystoreFile = new File(getReleaseKeystoreFile())
+            if (keystoreFile.isFile()) {
+                storeFile keystoreFile
+                storePassword getReleaseKeystorePassword()
+                keyAlias getReleaseKeyAlias()
+                keyPassword getReleaseKeystorePassword()
+            }
+        }
+    }
+
+    buildFeatures {
+        buildConfig = true
+    }
+
+    buildTypes {
+
+        debug {
+            // Signing and zip-aligning are skipped for prebuilt builds, but
+            // performed for Godot gradle builds.
+            zipAlignEnabled shouldZipAlign()
+            if (shouldSign()) {
+                signingConfig signingConfigs.debug
+            } else {
+                signingConfig null
+            }
+        }
+
+        dev {
+            initWith debug
+            // Signing and zip-aligning are skipped for prebuilt builds, but
+            // performed for Godot gradle builds.
+            zipAlignEnabled shouldZipAlign()
+            if (shouldSign()) {
+                signingConfig signingConfigs.debug
+            } else {
+                signingConfig null
+            }
+        }
+
+        release {
+            // Signing and zip-aligning are skipped for prebuilt builds, but
+            // performed for Godot gradle builds.
+            zipAlignEnabled shouldZipAlign()
+            if (shouldSign()) {
+                signingConfig signingConfigs.release
+            } else {
+                signingConfig null
+            }
+        }
+    }
+
+    // 'edition' is Godot's; 'tier' is VJMIX's (see vjmixTier at the top).
+    flavorDimensions 'edition', 'tier'
+
+    productFlavors {
+        // Product flavor for the standard (no .net support) builds.
+        standard {
+            dimension 'edition'
+            getIsDefault().set(true)
+        }
+
+        // Product flavor for the Mono (.net) builds.
+        mono {
+            dimension 'edition'
+        }
+
+        // Product flavor used for running instrumented tests.
+        instrumented {
+            dimension 'edition'
+            applicationIdSuffix ".instrumented"
+            versionNameSuffix "-instrumented"
+        }
+
+        // VJMIX Mobile (Play): src/main only. create() because `public` is a
+        // Groovy keyword and cannot be written as a bare block name.
+        create('public') {
+            dimension 'tier'
+        }
+
+        // VJMIX Mobile Pro (sideloaded): + src/pro — the video link, tracking
+        // and their TS/filter helpers, their plugin registrations
+        // (src/pro/AndroidManifest.xml), their Maven deps (proImplementation)
+        // and the MediaPipe models.
+        pro {
+            dimension 'tier'
+        }
+    }
+
+    sourceSets {
+        main.res.srcDirs += ['res']
+        // PocketVJ tracking: the MediaPipe .task model lives OUTSIDE
+        // src/main/assets because the Godot export WIPES that directory and
+        // repopulates it with the project files on every export (proven
+        // 2026-08-20: the model vanished from the first M0 APK). This extra
+        // assets dir is ours and survives; build.gradle itself is tracked.
+        // PRO tier only: ~48 MB of models the public build has no use for.
+        pro.assets.srcDirs += ['../tracking_assets']
+        debug.jniLibs.srcDirs = ['libs/debug', 'libs/debug/vulkan_validation_layers']
+        dev.jniLibs.srcDirs = ['libs/dev']
+        release.jniLibs.srcDirs = ['libs/release']
+    }
+
+    applicationVariants.all { variant ->
+        variant.outputs.all { output ->
+            String filenameSuffix = variant.productFlavors[0].name == "mono" ? variant.name : variant.buildType.name
+            output.outputFileName = "android_${filenameSuffix}.apk"
+        }
+    }
+}
+
+// Only the selected tier's variants exist, so each build compiles one tier.
+androidComponents {
+    beforeVariants(selector().all()) { variantBuilder ->
+        def tier = variantBuilder.productFlavors.find { it.first == 'tier' }?.second
+        if (tier != vjmixTier) {
+            variantBuilder.enable = false
+        }
+    }
+}
+
+// Godot invokes assemble<Edition><BuildType> / bundle<Edition><BuildType>
+// (e.g. bundleStandardRelease). With a second flavor dimension the real tasks
+// carry the tier too (bundleStandardPublicRelease), so give Godot's names to
+// the selected tier.
+afterEvaluate {
+    ['assemble', 'bundle'].each { verb ->
+        ['Standard', 'Mono', 'Instrumented'].each { edition ->
+            ['Debug', 'Dev', 'Release'].each { buildType ->
+                String alias = "${verb}${edition}${buildType}"
+                String real = "${verb}${edition}${vjmixTierCap}${buildType}"
+                if (tasks.findByName(alias) == null && tasks.findByName(real) != null) {
+                    tasks.register(alias) {
+                        group = 'vjmix'
+                        description = "Alias for ${real} (VJMIX tier ${vjmixTier})."
+                        dependsOn real
+                    }
+                }
+            }
+        }
+    }
+}
+
+task copyAndRenameBinary(type: Copy) {
+    // The 'doNotTrackState' is added to disable gradle's up-to-date checks for output files
+    // and directories. Otherwise this check may cause permissions access failures on Windows
+    // machines.
+    doNotTrackState("No need for up-to-date checks for the copy-and-rename operation")
+
+    String exportPath = getExportPath()
+    String exportFilename = getExportFilename()
+    String exportEdition = getExportEdition()
+    String exportBuildType = getExportBuildType()
+    String exportBuildTypeCapitalized = exportBuildType.capitalize()
+    String exportFormat = getExportFormat()
+
+    boolean isAab = exportFormat == "aab"
+    boolean isMono = exportEdition == "mono"
+    // Paths carry the VJMIX tier as the second flavor dimension.
+    String filenameSuffix = isAab ? "${exportEdition}-${vjmixTier}-${exportBuildType}" : exportBuildType
+    if (isMono) {
+        filenameSuffix = isAab ? "${exportEdition}-${vjmixTier}-${exportBuildType}" : "${exportEdition}${vjmixTierCap}${exportBuildTypeCapitalized}"
+    }
+
+    String sourceFilename = isAab ? "${project.name}-${filenameSuffix}.aab" : "android_${filenameSuffix}.apk"
+    String sourceFilepath = isAab ? "$buildDir/outputs/bundle/${exportEdition}${vjmixTierCap}${exportBuildTypeCapitalized}/$sourceFilename" : "$buildDir/outputs/apk/${exportEdition}${vjmixTierCap}/$exportBuildType/$sourceFilename"
+
+    from sourceFilepath
+    into exportPath
+    rename sourceFilename, exportFilename
+}
+
+/**
+ * Used to validate the version of the Java SDK used for the Godot gradle builds.
+ */
+task validateJavaVersion {
+    if (!JavaVersion.current().isCompatibleWith(versions.javaVersion)) {
+        throw new GradleException("Invalid Java version ${JavaVersion.current()}. Version ${versions.javaVersion} is the minimum supported Java version for Godot gradle builds.")
+    }
+}
+
+/*
+ * Older versions of our vendor plugin include a loader that we no longer need.
+ * This code ensures those are removed.
+ */
+tasks.withType( com.android.build.gradle.internal.tasks.MergeNativeLibsTask) {
+    doFirst {
+        externalLibNativeLibs.each { jniDir ->
+            if (jniDir.getCanonicalPath().contains("godot-openxr-") || jniDir.getCanonicalPath().contains("godotopenxr")) {
+                // Delete the 'libopenxr_loader.so' files from the vendors plugin so we only use the version from the
+                // openxr loader dependency.
+                File armFile = new File(jniDir, "arm64-v8a/libopenxr_loader.so")
+                if (armFile.exists()) {
+                    armFile.delete()
+                }
+                File x86File = new File(jniDir, "x86_64/libopenxr_loader.so")
+                if (x86File.exists()) {
+                    x86File.delete()
+                }
+            }
+        }
+    }
+}
+
+/*
+When they're scheduled to run, the copy*AARToAppModule tasks generate dependencies for the 'app'
+module, so we're ensuring the ':app:preBuild' task is set to run after those tasks.
+ */
+if (rootProject.tasks.findByPath("copyDebugAARToAppModule") != null) {
+    preBuild.mustRunAfter(rootProject.tasks.named("copyDebugAARToAppModule"))
+}
+if (rootProject.tasks.findByPath("copyDevAARToAppModule") != null) {
+    preBuild.mustRunAfter(rootProject.tasks.named("copyDevAARToAppModule"))
+}
+if (rootProject.tasks.findByPath("copyReleaseAARToAppModule") != null) {
+    preBuild.mustRunAfter(rootProject.tasks.named("copyReleaseAARToAppModule"))
+}

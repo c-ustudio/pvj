@@ -1,0 +1,37 @@
+[gd_scene load_steps=6 format=3]
+
+[ext_resource type="Script" path="res://scripts/pipeline.gd" id="1"]
+[ext_resource type="Script" path="res://scripts/clip_engine.gd" id="2"]
+[ext_resource type="Script" path="res://scripts/shader_slot.gd" id="3"]
+[ext_resource type="Script" path="res://scripts/quad_warp.gd" id="4"]
+[ext_resource type="Script" path="res://scripts/camera_engine.gd" id="5"]
+
+[node name="Main" type="Node2D"]
+script = ExtResource("1")
+
+[node name="OutputWorld" type="SubViewport" parent="."]
+size = Vector2i(1920, 1080)
+
+[node name="ClipEngine" type="Node" parent="OutputWorld"]
+script = ExtResource("2")
+
+[node name="CameraEngine" type="SubViewport" parent="OutputWorld"]
+size = Vector2i(1920, 1080)
+script = ExtResource("5")
+
+[node name="ShaderSlot" type="SubViewport" parent="OutputWorld"]
+size = Vector2i(1920, 1080)
+script = ExtResource("3")
+
+[node name="QuadWarp" type="MeshInstance2D" parent="OutputWorld"]
+script = ExtResource("4")
+
+[node name="UI" type="CanvasLayer" parent="."]
+
+[node name="Status" type="Label" parent="UI"]
+offset_left = 40.0
+offset_top = 40.0
+offset_right = 1400.0
+offset_bottom = 260.0
+theme_override_font_sizes/font_size = 44
+text = "POCKETVJ V0.2"
