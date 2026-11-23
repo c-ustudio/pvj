@@ -17,6 +17,11 @@ extends SceneTree
 ##   3. The dead-clip skip comes along: CLIP onto a clip that never opened lands
 ##      on the one after it; PREV steps back over it.
 ##   4. /pvj/out/clip echoes a file name that /pvj/deck/clip accepts (round trip).
+##   5. /pvj/lane_b/clip (deck B's twin): refused while lane B is unarmed; once
+##      armed (/pvj/lane_b/arm 1) CLIP i and CLIP s pick deck B's clip and leave
+##      deck A alone; refused when lane B's source isn't CLIPS and after disarm;
+##      /pvj/out/lane_b/clip round-trips; the lane-B grid tap still jumps deck B
+##      through the same _lane_b_jump.
 ##
 ## Headless draws no frames, so a jump never CUTS (the cue never turns warm —
 ## see verify_dead_clip.gd): "the deck's target" is the back decoder's cued
@@ -131,9 +136,80 @@ func _run() -> void:
 		_ok(idx >= 0 and e.clips[idx].get_file() == out_name, "…which /pvj/deck/clip resolves back to that clip",
 			"index %d" % idx)
 
+	await _lane_b(main, e)
+
 	main.queue_free()
 	await _frames(4)
 	_finish()
+
+
+## 5. Lane B over OSC. Deck B's "target" is read the same way as deck A's.
+func _lane_b(main: Node, e: Node) -> void:
+	var a_target := _target(e)
+	main._lane_b_armed = false   # a clean start, whatever settings.cfg restored
+	var status_before: String = main.status.text
+	await _send("/pvj/lane_b/clip", [2])
+	_ok(main.status.text == status_before, "/pvj/lane_b/clip while lane B is unarmed is refused (no flash)",
+		main.status.text)
+
+	await _send("/pvj/lane_b/arm", [1])
+	var eb: Node = main._clip_engine_b   # untyped, like `e`
+	var t0 := Time.get_ticks_msec()
+	while (eb == null or eb.clips.size() < 4) and Time.get_ticks_msec() - t0 < 10000:
+		await process_frame
+		eb = main._clip_engine_b
+	_ok(main._lane_b_armed and eb != null and eb.clips.size() >= 4, "/pvj/lane_b/arm 1 builds deck B with clips",
+		"%d clips" % (eb.clips.size() if eb != null else 0))
+	if eb == null or eb.clips.size() < 4:
+		return
+	await _frames(10)
+	var nb: int = eb.clips.size()
+
+	await _send("/pvj/lane_b/clip", [3])
+	_ok(_target(eb) == 2, "/pvj/lane_b/clip 3 (int) picks deck B's CLIP 3/N", "target %d" % _target(eb))
+	_ok(main.status.text == "OSC: B CLIP 3/%d" % nb, "…and flashes OSC: B CLIP 3/N", main.status.text)
+	var name4: String = eb.clips[3].get_file()
+	await _send("/pvj/lane_b/clip", [name4])
+	_ok(_target(eb) == 3, "/pvj/lane_b/clip \"%s\" (file name) picks it on deck B" % name4, "target %d" % _target(eb))
+	_ok(_target(e) == a_target, "…and deck A's target never moved", "A target %d" % _target(e))
+
+	var b_before := _target(eb)
+	await _send("/pvj/lane_b/clip", ["no_such_clip.mp4"])
+	await _send("/pvj/lane_b/clip", [nb + 1])
+	await _send("/pvj/lane_b/clip")
+	_ok(_target(eb) == b_before, "unknown name, N+1 and no arg leave deck B alone")
+
+	# The source gate. A NET source needs a link; set the field directly — the
+	# gate under test is _lane_b_jump's, not _set_lane_b_source's.
+	main._lane_b_source = 1   # LaneBSource.NET
+	await _send("/pvj/lane_b/clip", [1])
+	_ok(_target(eb) == b_before, "/pvj/lane_b/clip with lane B on NET is refused", "target %d" % _target(eb))
+	main._lane_b_source = 0   # back to CLIP
+
+	# /pvj/out/lane_b/clip: set by deck B's clip_changed, which only fires on a
+	# cut (never headless) — so emit what the engine would, then round-trip it.
+	var snap: Dictionary = main._osc_out_snapshot()
+	_ok(snap.has("/pvj/out/lane_b/clip") and snap["/pvj/out/lane_b/clip"] is String,
+		"/pvj/out/lane_b/clip is in the feedback frame, as a string")
+	eb.clip_changed.emit(eb.clips[1].get_file(), 1, nb)
+	var out_b: Variant = main._osc_out_snapshot()["/pvj/out/lane_b/clip"]
+	_ok(out_b == eb.clips[1].get_file(), "deck B's cut sets /pvj/out/lane_b/clip to its file name", str(out_b))
+	await _send("/pvj/lane_b/clip", [out_b])
+	_ok(_target(eb) == 1, "…and /pvj/lane_b/clip resolves that name back to the clip", "target %d" % _target(eb))
+
+	# The grid tap aimed at lane B goes through the same _lane_b_jump.
+	var lib: Node = root.get_node("ClipLibrary")
+	var strip_lane: int = main._strip_lane
+	main._strip_lane = 1
+	main._on_grid_clip_activated(lib.id_for_path(eb.clips[2]))
+	await _frames(4)
+	_ok(_target(eb) == 2, "the lane-B grid tap still jumps deck B", "target %d" % _target(eb))
+	main._strip_lane = strip_lane
+
+	await _send("/pvj/lane_b/arm", [0])
+	var b_now := _target(eb)
+	await _send("/pvj/lane_b/clip", [4])
+	_ok(not main._lane_b_armed and _target(eb) == b_now, "after /pvj/lane_b/arm 0, /pvj/lane_b/clip is refused again")
 
 
 func _pure() -> void:

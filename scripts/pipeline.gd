@@ -426,6 +426,7 @@ var _osc_out_targets: String = ""   ## [osc] cfg — "ip:port,ip:port"; empty = 
 var _osc_out_rate: int = 30         ## [osc] cfg — send passes per second, 1..60
 var _osc_out: OscOutput = null
 var _osc_out_clip: String = ""      ## cached by _on_clip_changed for the echo
+var _osc_out_lane_b_clip: String = ""   ## cached by _on_lane_b_clip_changed (/pvj/out/lane_b/clip)
 var _osc_lib_out_toggle: CheckButton = null   ## LIB ▸ OSC rows (Task 1, SESSION_45)
 var _osc_lib_targets_btn: Button = null
 var _osc_lib_in_lbl: Label = null
@@ -4288,6 +4289,26 @@ func _on_osc(address: String, args: Array) -> void:
 			else:
 				clip_engine.jump(ci)   # the grid tap's call (lane A deck)
 				_flash_status("OSC: CLIP %d/%d" % [ci + 1, clip_engine.clips.size()])
+		# Lane B's twin of /pvj/deck/clip: the grid tap aimed at lane B
+		# (_lane_b_jump), at once, same resolver against deck B's own list.
+		# Refuses exactly where the tap does — lane B not armed, or not on
+		# CLIPS — so a desk loading the hidden lane can't wake a sleeping deck.
+		"/pvj/lane_b/clip":
+			if args.size() < 1:
+				if _osc != null:
+					_osc.warn_dropped("/pvj/lane_b/clip: wants a clip number or name")
+			else:
+				var bi := -1
+				if _clip_engine_b != null:
+					bi = OscDeck.resolve(args[0], _clip_engine_b.clips,
+						func(p: String) -> String: return Storage.rel(p),
+						func(id: String) -> String: return ClipLibrary.path_for(id))
+				var why := _lane_b_jump(bi)
+				if why != "":
+					if _osc != null:
+						_osc.warn_dropped("/pvj/lane_b/clip %s: %s" % [str(args[0]), why])
+				else:
+					_flash_status("OSC: B CLIP %d/%d" % [bi + 1, _clip_engine_b.clips.size()])
 		"/pvj/fx/ascii/text":
 			if args.size() >= 1 and args[0] is String:
 				_show_ascii_message(args[0])
@@ -4493,6 +4514,7 @@ func _osc_out_snapshot() -> Dictionary:
 		"/pvj/out/seq/auto": 1 if (_seq_strip != null and _seq_strip.auto_enabled()) else 0,
 		"/pvj/out/lane_b/arm": 1 if _lane_b_armed else 0,
 		"/pvj/out/lane_b/source": ["clip", "net", "td"][_lane_b_source],
+		"/pvj/out/lane_b/clip": _osc_out_lane_b_clip,
 		"/pvj/out/beat": _bc_beat_index,
 		"/pvj/out/bar": _bc_bar_index,
 	}
@@ -8489,7 +8511,8 @@ func _ensure_lane_b() -> void:
 
 ## Engine B moved: repaint DECK B's ring in the grid (amber), leaving deck A's
 ## alone. The two rings are independent because both decks play at once.
-func _on_lane_b_clip_changed(_name: String, index: int, _count: int) -> void:
+func _on_lane_b_clip_changed(clip_name: String, index: int, _count: int) -> void:
+	_osc_out_lane_b_clip = clip_name   # /pvj/out/lane_b/clip echo, grid or no grid
 	if _clip_grid == null or _clip_engine_b == null:
 		return
 	if index < 0 or index >= _clip_engine_b.clips.size():
@@ -10210,20 +10233,28 @@ func _jump_to_clip_id(id: String) -> void:
 # was — the sequence position is independent of ad-hoc grid plays.
 func _on_grid_clip_activated(id: String) -> void:
 	if _strip_lane == 1:
-		# _grid_flash, not _flash_status: the open grid covers the status bar.
-		if _clip_engine_b == null or not _lane_b_armed:
-			_grid_flash("LANE B NOT ARMED")
-			return
-		if _lane_b_source != LaneBSource.CLIP:
-			_grid_flash("LANE B IS %s — SET B SRC: CLIPS" % LANE_B_SOURCE_NAMES[_lane_b_source])
-			return
-		var ci := _engine_index_for_clip_id(id, _clip_engine_b)
-		if ci >= 0:
-			_clip_engine_b.jump(ci)
-		else:
-			_grid_flash("NOT IN DECK B — RESCAN")   # silence reads as broken
+		var ci := _engine_index_for_clip_id(id, _clip_engine_b) if _clip_engine_b != null else -1
+		var why := _lane_b_jump(ci)
+		if why != "":
+			# _grid_flash, not _flash_status: the open grid covers the status bar.
+			_grid_flash(why)   # silence reads as broken
 		return
 	_jump_to_clip_id(id)
+
+
+## Play deck B's clip `ci` at once — the grid tap aimed at lane B and
+## /pvj/lane_b/clip both land here, so they refuse in the same places. Returns
+## "" when it jumped, else why not (each caller shows it its own way: a grid
+## flash, or the OSC drop log). ci < 0 = the clip isn't in deck B's list.
+func _lane_b_jump(ci: int) -> String:
+	if _clip_engine_b == null or not _lane_b_armed:
+		return "LANE B NOT ARMED"
+	if _lane_b_source != LaneBSource.CLIP:
+		return "LANE B IS %s — SET B SRC: CLIPS" % LANE_B_SOURCE_NAMES[_lane_b_source]
+	if ci < 0:
+		return "NOT IN DECK B — RESCAN"
+	_clip_engine_b.jump(ci)
+	return ""
 
 
 # Grid tap in CURATE mode: flip this clip's LIVE/PARKED flag (Option C step 2). This is

@@ -55,6 +55,7 @@ Resolume's standards is building to everyone's standards.
 | `/pvj/deck/next` | — | Next clip, **at once** — the NEXT cell's call (`clip_engine.next_clip()`): warm cue, dead-clip skip |
 | `/pvj/deck/prev` | — | Previous clip, at once — the PREV cell's call; steps back over a clip that never opened |
 | `/pvj/deck/clip` | i \| s | Jump to a clip, at once — the grid tap's call (`clip_engine.jump`). `i` = the number the status line shows (`CLIP 3/31` → 3), 1-based, 0 / past the end refused (never wrapped). `s` = a ClipLibrary id, the path under the clips folder (`pack1/beam.mp4`), the file name (what `/pvj/out/clip` sends — echo it back and it round-trips) or the bare name; case-insensitive, first in deck order on a shared name. Unknown = dropped, one log line per 5 s |
+| `/pvj/lane_b/clip` | i \| s | Lane B's twin of `/pvj/deck/clip`: jump **deck B** to a clip, at once — the grid tap aimed at lane B (`_lane_b_jump` → `_clip_engine_b.jump`). Same argument rules, resolved against deck B's own list (`i` = 1-based number; `s` = id, path, file name or bare name). Refused, one log line per 5 s, where the tap is refused: lane B not armed, or its source not `clip`; and an unknown clip. With lane B's sequencer auto on, its next step still wins (law 1) |
 | `/pvj/fx/ascii/text` | s | **A message on screen — takes over the look**: FX = ASCII, mode Custom, the cells spell the text (the FX panel's own calls: `_set_effect`, `_set_ascii_mode`, `_set_ascii_text`). Max 64 cells, plus one trailing space when there is room so the repeats read HELLO HELLO, not HELLOHELLO; A–Z / 0–9 show, anything else is a blank cell; case is ignored |
 | `/pvj/fx/ascii/mode` | s \| i | ASCII glyph mode `brightness\|binary\|random\|custom` (or index 0–3) — the mode buttons' call; does NOT switch the effect on |
 
@@ -63,8 +64,11 @@ stand for a button tap, and a tap cuts when it lands; the warm back decoder
 makes that cut ~instant. A sender wanting a cut ON the beat sends on the beat,
 or uses `/pvj/seq/slot`, which is quantized (law 2). Law 1 holds the simple
 way: it is the same call as the performer's tap, so whichever lands last wins
-and no automation is suspended or re-armed. They drive deck A (`clip_engine`)
-only; lane B has no OSC transport yet.
+and no automation is suspended or re-armed. `/pvj/deck/*` drives deck A
+(`clip_engine`); `/pvj/lane_b/clip` drives deck B. Together with `/pvj/xfade`
+that is the A/B ping-pong a desk needs: load the next clip on the lane the
+fader hides, fade to it, next time load the other lane. No `/pvj/lane_b/next|prev`
+yet: lane B steps through its pattern, so "next" has no single meaning there.
 
 **`/pvj/fx/ascii/text` takes over on purpose** (owner's call, SESSION_45): it is
 for audience / chat messages, which must show without the performer setting
@@ -91,7 +95,9 @@ speaking tomorrow's namespace at yesterday's build must not spam.
   one #bundle per pass + a 1 Hz full keyframe (the UDP recovery story).
   v1 addresses: `/pvj/out/xfade`, `/pvj/out/xfade/mode`, `/pvj/out/bpm`,
   `/pvj/out/mode`, `/pvj/out/clip`, `/pvj/out/seq/auto`,
-  `/pvj/out/lane_b/arm|source`, `/pvj/out/beat`, `/pvj/out/bar`.
+  `/pvj/out/lane_b/arm|source|clip`, `/pvj/out/beat`, `/pvj/out/bar`.
+  `/pvj/out/lane_b/clip` is deck B's file name (empty until lane B has
+  shown a clip), the same form `/pvj/lane_b/clip` accepts.
   Menu values go out as the same lowercase names the inbound parser
   accepts, so a desk can echo a value straight back and it round-trips.
   **LIB ▸ OSC (pro, SESSION_45):** OSC IN readout (port + this phone's
