@@ -1,10 +1,7 @@
 # `pvj-link.toe` — PocketVJ ↔ TouchDesigner over SRT (M3, bidirectional)
 
-TouchDesigner side of the video link. The live file is
-`../td_pvj_link/pvj-link.toe` (TD's numbered history in `Backup/`); this repo
-copy is refreshed at each milestone. Everything lives in one COMP:
-**`/project1/pvj_link`**. Full narrative: `SESSION_30_NOTES.md`,
-`VIDEO_LINK_SPEC.md`.
+TouchDesigner side of the video link. Everything lives in one COMP:
+**`/project1/pvj_link`**. The protocol is in `docs/VIDEO_LINK_SPEC.md`.
 
 ## `ab_player.tox` — the bundled TD deck
 

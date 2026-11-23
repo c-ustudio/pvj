@@ -3,7 +3,7 @@ extends Node
 
 const FeaturesS := preload("res://core/features.gd")   ## static: loads under --script too
 
-## OSC 1.0 inbound (OSC_NAMESPACE_SPEC.md) — UDP, messages + #bundles,
+## OSC 1.0 inbound (docs/OSC_NAMESPACE_SPEC.md) — UDP, messages + #bundles,
 ## type tags i/f/s only. STRICT: a packet that doesn't parse whole is
 ## dropped whole — garbage must never half-apply. Bundles' timetags are
 ## ignored (the receiver's bar quantization is the musical clock, not NTP).

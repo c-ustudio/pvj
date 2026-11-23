@@ -1,6 +1,6 @@
 extends SceneTree
 ## Headless check of ASCII custom messaging over OSC (/pvj/fx/ascii/text|mode,
-## OSC_NAMESPACE_SPEC.md §3, SESSION_45).
+## docs/OSC_NAMESPACE_SPEC.md §3, SESSION_45).
 ##
 ##   godot --headless --path <project> --script tools/verify_osc_ascii.gd -- --pro
 ##

@@ -5,7 +5,7 @@ extends Node
 ## so every existing call site is byte-identical):
 ##   "jpeg"  (default)  MJPEG over UDP — WIRE PROTOCOL v1, Stage 0. Everything
 ##                      below the STAGE 1 block describes this body.
-##   "h264"             Stage 1 send (VIDEO_LINK_SPEC.md §6.6): the same
+##   "h264"             Stage 1 send (docs/VIDEO_LINK_SPEC.md §6.6): the same
 ##                      readback handed to the PocketVJVideoLink plugin, which
 ##                      converts + encodes (MediaCodec H.264, low-latency) +
 ##                      frames + CONNECTS OUT to the peer's TCP 4853 listener,

@@ -1,6 +1,6 @@
 extends SceneTree
 ## Headless check of the deck transport over OSC (/pvj/deck/next|prev|clip,
-## OSC_NAMESPACE_SPEC.md §3, SESSION_45 Task 2).
+## docs/OSC_NAMESPACE_SPEC.md §3, SESSION_45 Task 2).
 ##
 ##   godot --headless --path <project> --script tools/verify_osc_deck.gd -- --pro
 ##

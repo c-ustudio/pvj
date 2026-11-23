@@ -41,7 +41,7 @@ import javax.microedition.khronos.egl.EGLConfig
 import javax.microedition.khronos.opengles.GL10
 
 /**
- * PocketVJ video-link Stage 1 transport (VIDEO_LINK_SPEC.md §5 Stage 1) —
+ * PocketVJ video-link Stage 1 transport (docs/VIDEO_LINK_SPEC.md §5 Stage 1) —
  * the receive path (milestone 1) and the send path (milestone 2) in one
  * plugin instance. Full duplex comes later, so the two paths deliberately
  * share NOTHING mutable: separate threads, sockets, codecs, stats.

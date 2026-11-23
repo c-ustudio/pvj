@@ -108,11 +108,17 @@ speaking tomorrow's namespace at yesterday's build must not spam.
   TARGETS (SILENT)` / `OFF`). All live, all persisted to `[osc]`; TRACKING's
   OSC out button + readout mirror the same state. `/pvj/out/clip` is an `s`:
   the clip's FILE NAME with its extension (`pvj_loop_03.mp4`), changed on
-  every cut and re-sent in the 1 Hz keyframe; the tracking module's
-  `/pvj/out/track|field/...` (docs/MEDIAPIPE_MODULE.md §6) rides this,
-  and `/pvj/out/crowd/...` — aggregates plus opt-in per-person
-  `p<n>/x|y|size|present` — is **reserved** for crowd mode
-  (docs/MEDIAPIPE_MODULE.md §13.5, M8).
+  every cut and re-sent in the 1 Hz keyframe.
+  **Tracking (Pro, while TRACKING runs)** rides the same bundles, one float
+  per address, already filtered and normalised 0–1:
+  `/pvj/out/track/presence`, `/pvj/out/track/head/x|y|z`,
+  `/pvj/out/track/crowded`, `/pvj/out/track/hand/x|y|present`, the events
+  `/pvj/out/track/acquired` and `/pvj/out/track/lost` (`i 1`), and
+  `/pvj/out/trigger/<lane>` (`i` 1 fired, 0 released). In crowd mode:
+  `/pvj/out/crowd/count|spread|energy|nearest|balance|overflow`,
+  `/pvj/out/crowd/centroid/x|y`, per person (opt-in)
+  `/pvj/out/crowd/p<n>/present|x|y|size`, and (opt-in) the Kinect-patch
+  channels `/pvj/out/field/occupied_volume|motion_energy|centroid_x|centroid_y|spatial_variance|presence`.
 - `/pvj/tap` — network tap tempo (jitter makes it a research toy; bpm
   floats are the honest wire).
 

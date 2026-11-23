@@ -4,7 +4,7 @@ extends Node
 ## read. Two bodies behind one API, selected by set_codec() BEFORE listen():
 ##   "jpeg"  (default)  MJPEG over UDP — WIRE PROTOCOL v1, Stage 0. Everything
 ##                      below the STAGE 1 block describes this body.
-##   "h264"             Stage 1 (VIDEO_LINK_SPEC.md §6.6): the PocketVJVideoLink
+##   "h264"             Stage 1 (docs/VIDEO_LINK_SPEC.md §6.6): the PocketVJVideoLink
 ##                      Kotlin plugin listens on TCP, MediaCodec hardware-decodes
 ##                      into a SurfaceTexture latched onto an ExternalTexture's
 ##                      OES name. Zero copies, zero GDScript on the hot path.

@@ -1,6 +1,6 @@
 class_name OscDeck
 extends RefCounted
-## /pvj/deck/clip's argument -> the deck's clip index (OSC_NAMESPACE_SPEC.md §3).
+## /pvj/deck/clip's argument -> the deck's clip index (docs/OSC_NAMESPACE_SPEC.md §3).
 ## Pure: the pipeline hands over the deck's own clip list (ClipEngine.clips, the
 ## order CLIP n/N counts) and two lookups, and gets an index for the SAME jump()
 ## a grid tap makes. Static so tools/verify_osc_deck.gd can prove it without a

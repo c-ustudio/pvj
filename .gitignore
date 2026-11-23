@@ -50,3 +50,7 @@ td/__pycache__/
 # release artifacts (tools/release_build.sh) and the ident renders
 /dist/
 __pycache__/
+
+# Local agent notes for maintainers (kept on disk, not published)
+CLAUDE.md
+/.claude/

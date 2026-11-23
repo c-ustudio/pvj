@@ -275,7 +275,7 @@ var _btn_mirror_fill: Button
 var _ui_flipped: bool = false
 
 # --- DDP output to the 64x64 LED panel ------------------------------------
-# A SINK, not a stage (DDP_OUTPUT_SPEC.md §1). DdpOutput consumes OutputWorld's
+# A SINK, not a stage (docs/DDP_OUTPUT_SPEC.md §1). DdpOutput consumes OutputWorld's
 # texture the way ShaderSlot consumes ClipEngine's and produces no visual output,
 # so it hangs off the pipeline without disturbing it — the EGL bridge takes the
 # same texture's native GL handle, this takes it through ordinary GDScript, and
@@ -322,7 +322,7 @@ var _life: LifeSource = null
 var _btn_ddp_source: Button
 var _btn_life_rule: Button
 
-# --- VIDEO LINK (Stage 0 MJPEG mesh — VIDEO_LINK_SPEC.md §6) ---------------
+# --- VIDEO LINK (Stage 0 MJPEG mesh — docs/VIDEO_LINK_SPEC.md §6) ---------------
 # [link] in settings.cfg is still the persisted truth, but since the mesh was
 # seen working (Session 26) the VIDEO LINK panel section owns it live: enable,
 # role, and per-peer pull/stop all without touching settings.cfg (spec R3 —
@@ -1419,7 +1419,7 @@ func _ready() -> void:
 	# turns a phone into a mesh peer. Costs nothing when disabled — not built.
 	_build_link()
 
-	# OSC inbound (OSC_NAMESPACE_SPEC.md) — the standard-protocol control
+	# OSC inbound (docs/OSC_NAMESPACE_SPEC.md) — the standard-protocol control
 	# surface: TD, Resolume, TouchOSC, any desk. Independent of the link
 	# (a rig with no PocketVJ mesh still gets OSC). Default on, like the
 	# beacon — this is a LAN instrument.
@@ -3494,7 +3494,7 @@ func _set_ui_flip(on: bool) -> void:
 # --- DDP output ----------------------------------------------------------
 
 ## Create the sink and point it at OutputWorld. Called from _ready AFTER the
-## output viewport exists (DDP_OUTPUT_SPEC.md §4 step 3).
+## output viewport exists (docs/DDP_OUTPUT_SPEC.md §4 step 3).
 ##
 ## The node is created unconditionally because a bare Node costs nothing and it
 ## keeps the enable path a single boolean rather than a build-on-first-use
@@ -4204,7 +4204,7 @@ func _apply_remote_seq(a: Dictionary) -> void:
 			print("[seq] unknown remote op: %s" % str(a))
 
 
-# --- OSC inbound (OSC_NAMESPACE_SPEC.md) -----------------------------------
+# --- OSC inbound (docs/OSC_NAMESPACE_SPEC.md) -----------------------------------
 
 func _build_osc() -> void:
 	if not Features.OSC or not _osc_enabled:
@@ -4356,7 +4356,7 @@ func _osc_lane(args: Array, idx: int) -> String:
 	return "a"
 
 
-# --- OSC outbound (/pvj/out/... — OSC_NAMESPACE_SPEC.md §4) -----------------
+# --- OSC outbound (/pvj/out/... — docs/OSC_NAMESPACE_SPEC.md §4) -----------------
 
 ## The other half of the namespace: phone -> desk state feedback, so a TD /
 ## Resolume / TouchOSC surface can MIRROR the deck (fader echoes, bpm, clip,
@@ -6961,7 +6961,7 @@ func _set_ascii_mode(m: int) -> void:
 
 
 ## The ASCII custom text — the ONE setter for the TEXT field and /pvj/fx/ascii/text
-## (OSC_NAMESPACE_SPEC.md §5). Capped at the shader's 64 cells; letters and digits
+## (docs/OSC_NAMESPACE_SPEC.md §5). Capped at the shader's 64 cells; letters and digits
 ## show, anything else is a blank cell (_ascii_text_codes).
 func _set_ascii_text(t: String) -> void:
 	_ascii_text = t.left(ASCII_TEXT_MAX)

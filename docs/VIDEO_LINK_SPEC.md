@@ -1,6 +1,7 @@
 # VIDEO LINK — interconnect spec (phones ↔ phones ↔ TouchDesigner)
 
-**Status: DESIGN — no code yet.** Written 2026-08-05 from a three-way research pass
+**Status: BUILT** (Pro): beacon + control link, MJPEG and H.264 phone ⇄ phone, SRT phone ⇄ TD.
+The staged status notes in §5 say what shipped when. Originally written 2026-08-05 from a three-way research pass
 (NDI/Android, Godot/Android video I/O, TouchDesigner stream I/O). Every load-bearing
 claim below carries its source; things we have NOT verified on our own hardware are
 in §9 as measurements that gate implementation.

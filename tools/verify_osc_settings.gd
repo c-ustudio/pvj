@@ -1,6 +1,6 @@
 extends SceneTree
 ## Headless check of LIB ▸ OSC, the OSC OUT settings rows (SESSION_45 Task 1,
-## OSC_NAMESPACE_SPEC.md §4).
+## docs/OSC_NAMESPACE_SPEC.md §4).
 ##
 ##   godot --headless --path <project> --script tools/verify_osc_settings.gd -- --pro
 ##

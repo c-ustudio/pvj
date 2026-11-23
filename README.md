@@ -50,16 +50,16 @@ addons/gde_gozen/        video decoding (LGPL-2.1, FFmpeg)
 third_party/             GoZen + FFmpeg source info and licence texts (LGPL)
 td/                      TouchDesigner side of the phone ⇄ TD link
 tools/                   build script, headless verify scripts, helpers
-*_SPEC.md, docs/         design specs
+docs/                    OSC, video link and DDP references, privacy policy
 ```
 
-The specs describe features that are built. They sometimes reference internal session notes (`SESSION_NN_NOTES.md`) and planning documents that are not included here.
+The docs in `docs/` and `td/README.md` describe how PVJ talks to other gear: the OSC commands, the phone ⇄ phone ⇄ TouchDesigner video link, and the DDP stream to an LED panel. They sometimes mention internal notes and design documents that are not included here; the code is the reference for everything else.
 
 **Not included:** the Pro build's HUD and HUD Rings effects. Their shaders port non-commercial Shadertoy code, so the app simply leaves them out of the FX list when the files are missing (see [THIRD_PARTY.md](THIRD_PARTY.md)).
 
 ## Control PVJ from outside
 
-PVJ Pro listens for OSC on UDP 4855 and can send its state back (`/pvj/out/...`). The namespace is in [OSC_NAMESPACE_SPEC.md](OSC_NAMESPACE_SPEC.md): tempo, sequence slots, modes, crossfader, lane B, clip next/previous/pick, ASCII text. [pvj-logos-link](https://github.com/c-ustudio/pvj-logos-link) uses it to drive PVJ from Logos Basecamp Chat.
+PVJ Pro listens for OSC on UDP 4855 and can send its state back (`/pvj/out/...`). The namespace is in [docs/OSC_NAMESPACE_SPEC.md](docs/OSC_NAMESPACE_SPEC.md): tempo, sequence slots, modes, crossfader, lane B, clip next/previous/pick, ASCII text. [pvj-logos-link](https://github.com/c-ustudio/pvj-logos-link) uses it to drive PVJ from Logos Basecamp Chat.
 
 ## Contributing
 

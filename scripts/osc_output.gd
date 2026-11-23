@@ -3,7 +3,7 @@ extends Node
 
 const FeaturesS := preload("res://core/features.gd")   ## static: loads under --script too
 
-## OSC 1.0 outbound (/pvj/out/... — OSC_NAMESPACE_SPEC.md §4), the encoder
+## OSC 1.0 outbound (/pvj/out/... — docs/OSC_NAMESPACE_SPEC.md §4), the encoder
 ## sibling of OscInput. UDP fire-and-forget to a list of ip:port targets.
 ##
 ## The pipeline owns the namespace: it hands over a `snapshot` Callable that

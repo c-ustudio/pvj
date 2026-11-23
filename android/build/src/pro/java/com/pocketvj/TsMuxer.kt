@@ -4,7 +4,7 @@ import java.io.ByteArrayOutputStream
 
 /**
  * Minimal single-program MPEG-TS muxer for the video link's TouchDesigner leg
- * (VIDEO_LINK_SPEC.md §5 Stage 1 item 2: MPEG-TS-over-SRT to/from TD).
+ * (docs/VIDEO_LINK_SPEC.md §5 Stage 1 item 2: MPEG-TS-over-SRT to/from TD).
  *
  * Exactly one H.264 elementary stream and nothing else: PAT + PMT repeated on
  * every keyframe (and at least every PSI_INTERVAL_US), one PES packet per
